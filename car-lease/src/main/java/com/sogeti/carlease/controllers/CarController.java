@@ -1,58 +1,62 @@
 package com.sogeti.carlease.controllers;
 
 import com.sogeti.carlease.models.Car;
-import com.sogeti.carlease.models.Customer;
-import com.sogeti.carlease.repositories.CarRepository;
-import org.springframework.beans.BeanUtils;
+import com.sogeti.carlease.services.CarLeaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.xml.bind.ValidationException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/cars")
+@RequestMapping("/api/car")
 public class CarController {
     @Autowired
-    private CarRepository carRepository;
+    private CarLeaseService carLeaseService;
 
-    @GetMapping
-    public List<Car> carList(){
-        return carRepository.findAll();
+    @GetMapping(value="/all")
+    public List<Car> readAll() {
+        return carLeaseService.getAllCars();
     }
 
-    @GetMapping("/getCar/{id}")
-    public Car get(@PathVariable Long id){
-        return carRepository.getReferenceById(id);
+    @GetMapping(value="/{id}")
+    public Car read(@PathVariable int id) {
+        Optional<Car> car = carLeaseService.findById(id);
+        return car.stream().findFirst().orElse(null);
     }
 
-    @PostMapping("/createCar")
-    public Car create(@RequestBody final Car car){
-        return carRepository.saveAndFlush(car);
+    @PostMapping(value="/addNew")
+    public Car create(@RequestBody final Car car) throws ValidationException {
+        if(car.getMake() != null && car.getModel() != null && car.getNettPrice() != 0.0)
+            return carLeaseService.createCar(car);
+        else
+            throw new ValidationException("A car cannot be created without Model or Make or NettPrice");
     }
 
-    @GetMapping("/getAllCars")
-    public List<Car> getAllCars(){
-        return carRepository.findAll();
+    @RequestMapping(value="/update/{id}", method = RequestMethod.PUT)
+    public Car update(@PathVariable int id, @RequestBody Car car) throws ValidationException {
+        if(carLeaseService.findById(id).isPresent()) {
+            return carLeaseService.updateCar(car, id);
+        }else{
+            throw new ValidationException("A car with this id does not exits");
+        }
     }
 
-    @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-    public void deleteCar(@PathVariable Long id){
+    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
+    public void delete(@PathVariable int id){
         //need to check children records before deleting
-        carRepository.deleteById(id);
+        carLeaseService.deleteCar(id);
     }
 
-    @RequestMapping(value= "{id}", method = RequestMethod.PUT)
-    public Car update(@PathVariable Long id, @RequestBody Car car){
-        // we need to add the validation that all attributes are passed in, else return a 400 bad payload
-        Car existingCar = carRepository.getReferenceById(id);
-        BeanUtils.copyProperties(car, existingCar, "carId");
-        return carRepository.saveAndFlush(existingCar);
-    }
-
-    @GetMapping
-    @RequestMapping("/getLeasePrice/{id}")
-    public Float getPrice(@PathVariable Long id){
-        return 1111.8f;
+    @RequestMapping(value="/calculateLease", method = RequestMethod.GET)
+    public double calculateLease(@RequestParam(value = "Mileage" , required = true) double mileage,
+                                 @RequestParam(value = "Duration", required = true) double duration,
+                                 @RequestParam(value = "InterestRate", required = true) double interestRate,
+                                 @RequestParam(value = "Make", required = true) String make,
+                                 @RequestParam(value = "Model", required = true) String model){
+        return carLeaseService.calculateCarLease(mileage,duration,interestRate,make,model);
     }
 
 }

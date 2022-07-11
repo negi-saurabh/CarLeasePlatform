@@ -1,24 +1,48 @@
 package com.sogeti.carlease.models;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long carId;
+    private int carId;
     private String make;
     private String model;
     private String version;
-    private String numberOfDoors;
+    private int numberOfDoors;
     private String co2Emissions;
-    private float grossPrice;
-    private float nettPrice;
+    private double grossPrice;
+    private double nettPrice;
+
+    /*@JsonBackReference
+    @ManyToOne
+    Customer customer;
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }*/
 
     public Car(){
+    }
+
+    public Car(int carId, String make, String model, String version, int numberOfDoors, String co2Emissions, double grossPrice, double nettPrice) {
+        this.carId = carId;
+        this.make = make;
+        this.model = model;
+        this.version = version;
+        this.numberOfDoors = numberOfDoors;
+        this.co2Emissions = co2Emissions;
+        this.grossPrice = grossPrice;
+        this.nettPrice = nettPrice;
+    }
+
+    public int getCarId() {
+        return carId;
     }
 
     public String getMake() {
@@ -45,11 +69,11 @@ public class Car {
         this.version = version;
     }
 
-    public String getNumberOfDoors() {
+    public int getNumberOfDoors() {
         return numberOfDoors;
     }
 
-    public void setNumberOfDoors(String numberOfDoors) {
+    public void setNumberOfDoors(int numberOfDoors) {
         this.numberOfDoors = numberOfDoors;
     }
 
@@ -61,19 +85,19 @@ public class Car {
         this.co2Emissions = co2Emissions;
     }
 
-    public float getGrossPrice() {
+    public double getGrossPrice() {
         return grossPrice;
     }
 
-    public void setGrossPrice(float grossPrice) {
+    public void setGrossPrice(double grossPrice) {
         this.grossPrice = grossPrice;
     }
 
-    public float getNettPrice() {
+    public double getNettPrice() {
         return nettPrice;
     }
 
-    public void setNettPrice(float nettPrice) {
+    public void setNettPrice(double nettPrice) {
         this.nettPrice = nettPrice;
     }
 }

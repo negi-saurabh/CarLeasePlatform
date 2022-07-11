@@ -1,13 +1,12 @@
 package com.sogeti.carlease.models;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long customerId;
+    private int customerId;
     private String name;
     private String street;
     private String houseNumber;
@@ -16,8 +15,8 @@ public class Customer {
     private String emailAddress;
     private String phoneNumber;
 
-    /*@OneToMany
-    @JoinTable()
+   /* @JsonManagedReference
+    @OneToMany(cascade = CascadeType.ALL)
     private List<Car> cars;
 
     public List<Car> getCars() {
@@ -30,6 +29,21 @@ public class Customer {
 
     //let see if you need a default const
     public Customer(){
+    }
+
+    public Customer(int customerId, String name, String street, String houseNumber, String zipCode, String place, String emailAddress, String phoneNumber) {
+        this.customerId = customerId;
+        this.name = name;
+        this.street = street;
+        this.houseNumber = houseNumber;
+        this.zipCode = zipCode;
+        this.place = place;
+        this.emailAddress = emailAddress;
+        this.phoneNumber = phoneNumber;
+    }
+
+    public int getCustomerId() {
+        return customerId;
     }
 
     public String getName() {

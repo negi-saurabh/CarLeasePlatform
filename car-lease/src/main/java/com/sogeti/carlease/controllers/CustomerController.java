@@ -2,52 +2,45 @@ package com.sogeti.carlease.controllers;
 
 import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
-import com.sogeti.carlease.repositories.CustomerRepository;
-import org.springframework.beans.BeanUtils;
+import com.sogeti.carlease.services.BrokerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping("/api/customer")
 public class CustomerController {
 
     @Autowired
-    private CustomerRepository customerRepository;
+    private BrokerService brokerService;
 
-    @GetMapping
-    public List<Customer> customerList(){
-        return customerRepository.findAll();
+    @GetMapping(value="/all")
+    public List<Customer> readAll() {
+        return brokerService.getAllCustomers();
     }
 
-    @GetMapping
-    @RequestMapping("{id}")
-    public Customer get(@PathVariable Long id){
-        return customerRepository.getReferenceById(id);
+    @GetMapping(value="/{id}")
+    public List<Customer> read(@PathVariable int id) {
+        Optional<Customer> customer = brokerService.findById(id);
+        return customer.map(List::of).orElse(Collections.emptyList());
     }
 
-    @PostMapping("/createCustomers")
-    public Customer create(@RequestBody final Customer customer){
-        return customerRepository.saveAndFlush(customer);
+    @PostMapping(value="/addNew")
+    public Customer create(@RequestBody final Customer customer) {
+        return brokerService.createCustomer(customer);
     }
 
-    @GetMapping("/getAllCustomers")
-    public List<Customer> getAllCustomers(){
-        return customerRepository.findAll();
+    @RequestMapping(value= "/update/{id}", method = RequestMethod.PUT)
+    public Customer update(@PathVariable int id, @RequestBody Customer customer){
+        return brokerService.updateCustomer(customer, id);
     }
 
-    @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-    public void deleteCar(@PathVariable Long id){
+    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
+    public void delete(@PathVariable int id){
         //need to check children records before deleting
-        customerRepository.deleteById(id);
-    }
-
-    @RequestMapping(value= "{id}", method = RequestMethod.PUT)
-    public Customer update(@PathVariable Long id, @RequestBody Customer customer){
-        // we need to add the validation that all attributes are passed in, else return a 400 bad payload
-        Customer existingCustomer = customerRepository.getReferenceById(id);
-        BeanUtils.copyProperties(customer, existingCustomer, "customerId");
-        return customerRepository.saveAndFlush(existingCustomer);
+        brokerService.deleteCustomer(id);
     }
 }
