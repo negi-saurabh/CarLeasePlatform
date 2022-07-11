@@ -4,6 +4,7 @@ import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
 import com.sogeti.carlease.services.BrokerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -11,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/customer")
 public class CustomerController {
 
     @Autowired
@@ -43,4 +43,5 @@ public class CustomerController {
         //need to check children records before deleting
         brokerService.deleteCustomer(id);
     }
+
 }

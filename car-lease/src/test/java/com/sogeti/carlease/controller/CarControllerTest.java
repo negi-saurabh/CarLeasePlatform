@@ -74,7 +74,7 @@ public class CarControllerTest {
     public void testUpdateCar() throws Exception {
         Car car = new Car(4, "Honda", "civis", "1.0", 4, "234" , 234.0, 234.8 );
         doNothing().when(carController).update(4, car);
-        mvc.perform(put("/api/car/" +"/update"+car.getCarId()).content(asJson(car)).contentType(APPLICATION_JSON))
+        mvc.perform(put("/api/car" +"/update"+car.getCarId()).content(asJson(car)).contentType(APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();
     }
     private Car getCar() {

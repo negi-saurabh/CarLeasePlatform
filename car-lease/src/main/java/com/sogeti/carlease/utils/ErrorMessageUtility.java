@@ -1,10 +1,10 @@
 package com.sogeti.carlease.utils;
 
-public class ErrorMessage {
+public class ErrorMessageUtility {
     private String status;
     private String message;
 
-    public ErrorMessage(String status, String message) {
+    public ErrorMessageUtility(String status, String message) {
         this.status = status;
         this.message = message;
     }
