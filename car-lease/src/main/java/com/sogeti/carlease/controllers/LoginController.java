@@ -29,12 +29,13 @@ public class LoginController {
 
     @GetMapping("/")
     public String home(){
+        System.out.println("** inside home***");
         return "Welcome You are home";
     }
 
     @PostMapping("/authenticate")
     public JWTResponse authenticate(@RequestBody JWTRequest jwtRequest) throws Exception {
-
+        System.out.println("** inside authenticate***");
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -48,6 +49,7 @@ public class LoginController {
 
         final UserDetails userDetails = loginService.loadUserByUsername(jwtRequest.getUserName());
         final String token = jwtUtility.generateToken(userDetails);
+        System.out.println("** token generated ***"+token);
         return new JWTResponse(token);
     }
 
