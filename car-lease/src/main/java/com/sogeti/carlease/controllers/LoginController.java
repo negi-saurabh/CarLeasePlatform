@@ -35,7 +35,6 @@ public class LoginController {
 
     @PostMapping("/authenticate")
     public JWTResponse authenticate(@RequestBody JWTRequest jwtRequest) throws Exception {
-        System.out.println("** inside authenticate***");
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -46,11 +45,8 @@ public class LoginController {
         catch (BadCredentialsException exception){
                 throw new Exception("INVALID CREDENTIALS", exception);
         }
-
         final UserDetails userDetails = loginService.loadUserByUsername(jwtRequest.getUserName());
         final String token = jwtUtility.generateToken(userDetails);
-        System.out.println("** token generated ***"+token);
         return new JWTResponse(token);
     }
-
 }
