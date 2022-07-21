@@ -1,10 +1,8 @@
 package com.sogeti.carlease.controllers;
 
-import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
 import com.sogeti.carlease.services.BrokerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -12,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-public class CustomerController {
+public class BrokerController {
 
     @Autowired
     private BrokerService brokerService;
@@ -44,4 +42,12 @@ public class CustomerController {
         brokerService.deleteCustomer(id);
     }
 
+    @RequestMapping(value="/calculateLease", method = RequestMethod.GET)
+    public double calculateLease(@RequestParam(value = "Mileage" , required = true) double mileage,
+                                 @RequestParam(value = "Duration", required = true) double duration,
+                                 @RequestParam(value = "InterestRate", required = true) double interestRate,
+                                 @RequestParam(value = "Make", required = true) String make,
+                                 @RequestParam(value = "Model", required = true) String model){
+        return brokerService.calculateCarLease(mileage,duration,interestRate,make,model);
+    }
 }

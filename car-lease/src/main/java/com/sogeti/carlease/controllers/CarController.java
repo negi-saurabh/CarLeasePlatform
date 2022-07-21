@@ -50,13 +50,6 @@ public class CarController {
         carLeaseService.deleteCar(id);
     }
 
-    @RequestMapping(value="/calculateLease", method = RequestMethod.GET)
-    public double calculateLease(@RequestParam(value = "Mileage" , required = true) double mileage,
-                                 @RequestParam(value = "Duration", required = true) double duration,
-                                 @RequestParam(value = "InterestRate", required = true) double interestRate,
-                                 @RequestParam(value = "Make", required = true) String make,
-                                 @RequestParam(value = "Model", required = true) String model){
-        return carLeaseService.calculateCarLease(mileage,duration,interestRate,make,model);
-    }
+
 
 }
