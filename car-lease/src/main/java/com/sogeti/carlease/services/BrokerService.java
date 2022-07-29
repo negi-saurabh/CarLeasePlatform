@@ -1,6 +1,5 @@
 package com.sogeti.carlease.services;
 
-import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
 import com.sogeti.carlease.repositories.CustomerRepository;
 import org.springframework.beans.BeanUtils;
