@@ -87,6 +87,7 @@ public class CarControllerTest {
         car.setVersion("3.0");
         return car;
     }
+
     private static String asJson(final Object obj) {
         try {
             return new ObjectMapper().writeValueAsString(obj);
