@@ -32,9 +32,6 @@ public class JWTFilter extends OncePerRequestFilter {
         String authorization = ln.isPresent()? ln.get() : "NoAuth";
         String token = null;
         String userName = null;
-        if(false){
-            System.out.println("Yes");
-        }
 
         if(!"NoAuth".equals(authorization) && authorization.startsWith("Bearer"))
         {
