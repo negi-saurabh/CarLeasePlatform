@@ -1,9 +1,8 @@
 package com.sogeti.carlease.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sogeti.carlease.controllers.CarController;
-import com.sogeti.carlease.controllers.LoginController;
 import com.sogeti.carlease.models.Car;
-import com.sogeti.carlease.models.JWTRequest;
 import com.sogeti.carlease.services.LoginService;
 import com.sogeti.carlease.utils.JWTUtility;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,28 +21,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-
-import static org.hamcrest.core.Is.is;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.asMediaType;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -103,7 +88,7 @@ public class CarControllerTest {
     public void testGetCarByIdNotFound() throws Exception {
         Car mockCar = getCar();
 
-        mockMvc.perform(get("/api/car/" + "/"+44)
+        mockMvc.perform(get("/api/car/" + 44)
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -115,7 +100,7 @@ public class CarControllerTest {
     public void testAddCar() throws Exception {
         Car mockCar = getCar();
 
-        mockMvc.perform(post("/api/car" +"/addNew").content(asJson(mockCar))
+        mockMvc.perform(post("/api/car/" +"addNew").content(asJson(mockCar))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
                         .andExpect(status().isCreated())
@@ -128,7 +113,7 @@ public class CarControllerTest {
     public void testUpdateCar() throws Exception {
         Car mockCar = getCar();
 
-        mockMvc.perform(put("/api/car" +"/update"+mockCar.getCarId()).content(asJson(mockCar))
+        mockMvc.perform(put("/api/car/" +"update"+mockCar.getCarId()).content(asJson(mockCar))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
                         .andExpect(status().isOk())
@@ -141,7 +126,7 @@ public class CarControllerTest {
     public void testUpdateCarNotFound() throws Exception {
         Car mockCar = getCar();
 
-        mockMvc.perform(put("/api/car" +"/update"+mockCar.getCarId()).content(asJson(mockCar))
+        mockMvc.perform(put("/api/car/" +"update"+mockCar.getCarId()).content(asJson(mockCar))
                 .header("AUTHORIZATION","Bearer "+token)
                 .contentType(APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -187,11 +172,5 @@ public class CarControllerTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static List<SimpleGrantedAuthority> buildSimpleGrantedAuthorities(final String role) {
-        return new ArrayList<>() {{
-            add(new SimpleGrantedAuthority(role));
-        }};
     }
 }
