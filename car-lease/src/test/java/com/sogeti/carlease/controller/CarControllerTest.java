@@ -6,19 +6,20 @@ import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.JWTRequest;
 import com.sogeti.carlease.services.LoginService;
 import com.sogeti.carlease.utils.JWTUtility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -41,6 +42,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -50,111 +53,121 @@ public class CarControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Autowired
     private CarController carController;
 
     @MockBean
-    private LoginController loginController;
+    private LoginService loginService;
 
+    @Autowired
+    private JWTUtility jwtUtility;
 
+    private String token;
 
-   /* @Test
+    @BeforeEach
+    public void setup() {
+        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("EMPLOYEE");
+        Mockito.when(loginService.loadUserByUsername(Mockito.anyString())).thenReturn(new User("admin", "password", authorities));
+        token = jwtUtility.generateToken("admin", authorities);
+    }
+
+    @Test
     @DisplayName("GET /api/car/all - Found All")
     public void testGetAllCars() throws Exception{
         Car mockCar =  getCar();
         List<Car> cars = new ArrayList<>();
         cars.add(mockCar);
 
-        given(carController.readAll()).willReturn(cars);
-        mockMvc.perform(get("/api/car/all"))
+        mockMvc.perform(get("/api/car/all")
+                        .header("AUTHORIZATION","Bearer "+token)
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].make", is(mockCar.getMake())));
-    }*/
+                .andExpect(content().contentType(APPLICATION_JSON));
+    }
 
     @Test
     @DisplayName("GET /api/car/4 - Found")
     public void testGetCarById() throws Exception {
         // mock set up
         Car mockCar = getCar();
-        given(carController.read(4)).willReturn(mockCar);
 
-        JWTRequest jwtRequest = new JWTRequest();
-        jwtRequest.setUserName("admin");
-        jwtRequest.setPassword("password");
-        jwtRequest.setAuthorities(new ArrayList<>());
-
-        final String token = loginController.authenticate(jwtRequest).getJwtToken();
-        mockMvc.perform(get("/api/car/" + mockCar.getCarId()).header("Authorization", token).contentType(APPLICATION_JSON).with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
-                .andExpect(jsonPath("make", is(mockCar.getMake())));
+        mockMvc.perform(get("/api/car/" + mockCar.getCarId())
+                        .header("AUTHORIZATION","Bearer "+token)
+                        .contentType(APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
-   /*  @Test
+    @Test
     @DisplayName("GET /api/car/1 - Not Found")
     public void testGetCarByIdNotFound() throws Exception {
         Car mockCar = getCar();
 
-        given(carController.read(1)).willReturn(mockCar);
-        mockMvc.perform(get("/api/car/" + mockCar.getCarId()))
+        mockMvc.perform(get("/api/car/" + "/"+44)
+                        .header("AUTHORIZATION","Bearer "+token)
+                        .contentType(APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-    }*/
+    }
 
-   /* @Test
+    @Test
     @DisplayName("POST /api/car/addNew - Success")
     public void testAddCar() throws Exception {
         Car mockCar = getCar();
 
-        doNothing().when(carController).create(mockCar);
-        mockMvc.perform(post("/api/car" +"/addNew").content(asJson(mockCar)))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(APPLICATION_JSON))
-                .andReturn();
+        mockMvc.perform(post("/api/car" +"/addNew").content(asJson(mockCar))
+                        .header("AUTHORIZATION","Bearer "+token)
+                        .contentType(APPLICATION_JSON))
+                        .andExpect(status().isCreated())
+                        .andExpect(content().contentType(APPLICATION_JSON))
+                        .andReturn();
     }
-*/
-   /* @Test
+
+    @Test
     @DisplayName("PUT /api/car/update - Success")
     public void testUpdateCar() throws Exception {
         Car mockCar = getCar();
 
-        doNothing().when(carController).update(5, mockCar);
-        mockMvc.perform(put("/api/car" +"/update"+mockCar.getCarId()).content(asJson(mockCar)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
-                .andReturn();
-    }*/
+        mockMvc.perform(put("/api/car" +"/update"+mockCar.getCarId()).content(asJson(mockCar))
+                        .header("AUTHORIZATION","Bearer "+token)
+                        .contentType(APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentType(APPLICATION_JSON))
+                        .andReturn();
+    }
 
-   /* @Test
+    @Test
     @DisplayName("PUT /api/car/update - Not Found")
     public void testUpdateCarNotFound() throws Exception {
         Car mockCar = getCar();
 
-        doNothing().when(carController).update(1, mockCar);
-        mockMvc.perform(put("/api/car" +"/update"+mockCar.getCarId()).content(asJson(mockCar)))
+        mockMvc.perform(put("/api/car" +"/update"+mockCar.getCarId()).content(asJson(mockCar))
+                .header("AUTHORIZATION","Bearer "+token)
+                .contentType(APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-    }*/
+    }
 
-   /* @Test
+    @Test
     @DisplayName("DELETE /api/car/delete - Success")
     public void testDeleteCar() throws Exception {
         Car mockCar = getCar();
 
-        doNothing().when(carController).delete(4);
-        mockMvc.perform(delete("/api/car/delete/" +  mockCar.getCarId()))
+        mockMvc.perform(delete("/api/car/delete/" +  mockCar.getCarId())
+                .header("AUTHORIZATION","Bearer "+token)
+                .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-    }*/
+    }
 
-   /* @Test
+    @Test
     @DisplayName("DELETE /api/car/delete - Not Found")
     public void testDeleteNotFoundCar() throws Exception {
         Car mockCar = getCar();
-
-        doNothing().when(carController).delete(1);
-        mockMvc.perform(delete("/api/car/delete/" +  mockCar.getCarId()))
+        mockMvc.perform(delete("/api/car/delete/" + 1)
+                .header("AUTHORIZATION","Bearer "+token)
+                .contentType(APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-    }*/
+    }
 
     private Car getCar() {
         Car car = new Car();
@@ -174,5 +187,11 @@ public class CarControllerTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static List<SimpleGrantedAuthority> buildSimpleGrantedAuthorities(final String role) {
+        return new ArrayList<>() {{
+            add(new SimpleGrantedAuthority(role));
+        }};
     }
 }

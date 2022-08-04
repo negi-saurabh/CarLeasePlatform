@@ -4,73 +4,75 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JWTUtility implements Serializable {
 
-    private static final long serialVersionUID = 234234523523L;
+    private final String AUTH_HEADER_PARAM_NAME = "Authorization";
+    private final String AUTH_HEADER_TOKEN_PREFIX = "Bearer";
+    private final String SIGNING_KEY = "ASecretKeyToSigYourJWTToken";
+    private final Long EXPIRE_IN = 600000L;
+    private final String AUTH_HEADER_USERNAME = "admin";
+    private final String AUTH_HEADER_PASSWORD = "password";
+    private final String AUTH_HEADER_ROLES = "EMPLOYEE";
 
-    public static final long JWT_TOKEN_VALIDITY = 2 * 60 * 60;
 
-    @Value("${jwt.secret}")
-    private String secretKey;
-
-    //retrieve username from jwt token
-    public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
+    public String getToken(HttpServletRequest request) {
+        String authToken = request.getHeader(AUTH_HEADER_PARAM_NAME);
+        if(Objects.isNull(authToken)) {
+            return null;
+        }
+        return authToken.substring(AUTH_HEADER_TOKEN_PREFIX.length());
     }
 
-    //retrieve expiration date from jwt token
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, Claims::getExpiration);
+    //Get username from the token
+    public String getUsernameFromToken(String token) throws Exception {
+        String username = null;
+        try {
+            final Claims claims = Jwts.parser().setSigningKey(SIGNING_KEY.getBytes()).parseClaimsJws(token).getBody();
+            username = String.valueOf(claims.get(AUTH_HEADER_USERNAME));
+        }
+        catch (Exception e) {
+            throw new Exception("INVALID JWT TOKEN");
+        }
+        return username;
     }
 
+    //Validate the token if it has expired or not
+    public boolean isValidToken(String token) throws Exception {
+        boolean isValid = true;
+        try {
+            final Claims claims = Jwts.parser().setSigningKey(SIGNING_KEY.getBytes()).parseClaimsJws(token).getBody();
+            isValid = !(claims.getExpiration().before(new Date()));
+        }
+        catch (Exception e) {
+            throw new Exception("INVALID JWT TOKEN");
+        }
 
-    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
-    }
-
-    //for retrieving any information from token we will need the secret key
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
-    }
-
-    //check if the token has expired
-    private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
+        return isValid;
     }
 
     //generate token for user
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return generateToken(claims, userDetails.getUsername());
+    public String generateToken(String username, Collection<GrantedAuthority> authorities) {
+        //Map<String, Object> claims = new HashMap<>();
+        //return generateToken(claims, userDetails.getUsername());
+
+        Claims claims = Jwts.claims();
+        String roles = authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
+        claims.put(AUTH_HEADER_USERNAME, username);
+        claims.put(AUTH_HEADER_ROLES, roles);
+        Date expiration = Date.from(Instant.ofEpochMilli(new Date().getTime()+EXPIRE_IN));
+        return Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiration).signWith(SignatureAlgorithm.HS512, SIGNING_KEY.getBytes()).compact();
     }
 
-    //while creating the token -
-    //1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
-    //2. Sign the JWT using the HS512 algorithm and secret key.
-    private String generateToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-                .signWith(SignatureAlgorithm.HS512, secretKey).compact();
-    }
-
-    //validate token
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
 }

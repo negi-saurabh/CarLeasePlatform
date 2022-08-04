@@ -13,9 +13,6 @@ public class CarLeaseApplication {
 		SpringApplication.run(CarLeaseApplication.class, args);
 	}
 
-	@Bean
-	public PasswordEncoder passwordEncoder(){
-		return NoOpPasswordEncoder.getInstance();
-	}
+
 
 }

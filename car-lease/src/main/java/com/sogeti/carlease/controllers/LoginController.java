@@ -8,11 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
 
 @RestController
 public class LoginController {
@@ -28,25 +32,26 @@ public class LoginController {
 
     @GetMapping("/")
     public String home(){
-        System.out.println("** inside home***");
+        System.out.println("** inside home **");
         return "Welcome You are home";
     }
 
     @PostMapping("/authenticate")
     public JWTResponse authenticate(@RequestBody JWTRequest jwtRequest) throws Exception {
         try {
-            authenticationManager.authenticate(
+            Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             jwtRequest.getUserName(),
-                            jwtRequest.getPassword(),
-                            jwtRequest.getAuthorities())
+                            jwtRequest.getPassword())
             );
+
+            final UserDetails userDetails = loginService.loadUserByUsername(jwtRequest.getUserName());
+            final String token = jwtUtility.generateToken(userDetails.getUsername(), (Collection<GrantedAuthority>) authentication.getAuthorities());
+            return new JWTResponse(token);
         }
         catch (BadCredentialsException exception){
-                throw new Exception("INVALID CREDENTIALS", exception);
+            throw new Exception("INVALID CREDENTIALS", exception);
         }
-        final UserDetails userDetails = loginService.loadUserByUsername(jwtRequest.getUserName());
-        final String token = jwtUtility.generateToken(userDetails);
-        return new JWTResponse(token);
+
     }
 }
