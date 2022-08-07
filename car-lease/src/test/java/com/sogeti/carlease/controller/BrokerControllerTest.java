@@ -1,11 +1,8 @@
 package com.sogeti.carlease.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sogeti.carlease.controllers.BrokerController;
-import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
 import com.sogeti.carlease.services.BrokerService;
-import com.sogeti.carlease.services.CarLeaseService;
 import com.sogeti.carlease.services.LoginService;
 import com.sogeti.carlease.utils.JWTUtility;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +31,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -71,7 +67,7 @@ public class BrokerControllerTest {
 
     @Test
     @DisplayName("GET /api/customer/all - Found All")
-    public void testGetAllCars() throws Exception{
+    public void testGetAllCustomers() throws Exception{
         List<Customer> customers = new ArrayList<>();
         customers.add(mockCustomer);
 
@@ -94,7 +90,7 @@ public class BrokerControllerTest {
 
     @Test
     @DisplayName("GET /api/customer/4 - Found")
-    public void testGetCarById() throws Exception {
+    public void testGetCustomerById() throws Exception {
         when(brokerService.findById(Mockito.anyInt())).thenReturn(Optional.of(mockCustomer));
         mockMvc.perform(get("/api/customer/" + mockCustomer.getCustomerId())
                         .header("AUTHORIZATION","Bearer "+token)
@@ -106,7 +102,7 @@ public class BrokerControllerTest {
 
     @Test
     @DisplayName("GET /api/customer/{id} - Not Found")
-    public void testGetCarByIdNotFound() throws Exception {
+    public void testGetCustomerByIdNotFound() throws Exception {
         when(brokerService.findById(20)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/customer/" + 20)
@@ -118,10 +114,10 @@ public class BrokerControllerTest {
 
     @Test
     @DisplayName("POST /api/customer/addNew - Success")
-    public void testAddCar() throws Exception {
+    public void testAddCustomer() throws Exception {
         when(brokerService.createCustomer(Mockito.any(Customer.class))).thenReturn(mockCustomer);
 
-        mockMvc.perform(post("/api/customer/" +"addNew").content(asJson(mockCustomer))
+        mockMvc.perform(post("/api/customer/addNew").content(asJson(mockCustomer))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -131,24 +127,23 @@ public class BrokerControllerTest {
 
     @Test
     @DisplayName("PUT /api/customer/update - Success")
-    public void testUpdateCar() throws Exception {
-        when(brokerService.updateCustomer( mockCustomer,1)).thenReturn(mockCustomer);
+    public void testUpdateCustomer() throws Exception {
+        when(brokerService.updateCustomer( mockCustomer,3)).thenReturn(mockCustomer);
 
-        mockMvc.perform(put("/api/customer/" +"update"+mockCustomer.getCustomerId()).content(asJson(mockCustomer))
+        mockMvc.perform(put("/api/customer/update/" +mockCustomer.getCustomerId())
                         .content(this.mapper.writeValueAsBytes(mockCustomer))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
-                .andExpect(status().isAccepted())
-                .andExpect(content().contentType(APPLICATION_JSON))
-                .andReturn();
+                        .andExpect(status().isAccepted())
+                        .andExpect(content().contentType(APPLICATION_JSON));
     }
 
     @Test
     @DisplayName("DELETE /api/customer/delete - Success")
-    public void testUpdateCarNotFound() throws Exception {
+    public void testUpdateCustomerNotFound() throws Exception {
         BrokerService serviceSpy = Mockito.spy(brokerService);
         doNothing().when(serviceSpy).deleteCustomer(mockCustomer.getCustomerId());
-        mockMvc.perform(delete("/api/customer/" +"delete"+mockCustomer.getCustomerId()).content(asJson(mockCustomer))
+        mockMvc.perform(delete("/api/customer/delete/" + mockCustomer.getCustomerId()).content(asJson(mockCustomer))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isNoContent());

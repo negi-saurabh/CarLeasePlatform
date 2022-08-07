@@ -32,7 +32,6 @@ public class LoginController {
 
     @GetMapping("/")
     public String home(){
-        System.out.println("** inside home **");
         return "Welcome You are home";
     }
 

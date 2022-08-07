@@ -2,7 +2,6 @@ package com.sogeti.carlease.controllers;
 
 import com.sogeti.carlease.exceptions.CarNotFoundException;
 import com.sogeti.carlease.exceptions.CustomerNotFoundException;
-import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
 import com.sogeti.carlease.services.BrokerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,9 +34,9 @@ public class BrokerController {
     @GetMapping(value="/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<Customer> read(@PathVariable int id) {
-        Optional<Customer> optCar = carLeaseService.findById(id);
-        if (optCar.isPresent()){
-            return ResponseEntity.ok(optCar.get());
+        Optional<Customer> optCustomer = brokerService.findById(id);
+        if (optCustomer.isPresent()){
+            return ResponseEntity.ok(optCustomer.get());
         } else {
             throw new CustomerNotFoundException("Customer with customer Id (" + id + ") not found!");
         }
@@ -45,21 +44,25 @@ public class BrokerController {
 
     @PostMapping(value="/addNew")
     @PreAuthorize("hasAuthority('BROKER')")
-    public Customer create(@RequestBody final Customer customer) {
-        return brokerService.createCustomer(customer);
+    public ResponseEntity<Customer> create(@RequestBody final Customer customer) {
+        Optional<Customer> objCustomer = brokerService.findById(customer.getCustomerId());
+       if(objCustomer.isPresent())
+            throw new HttpClientErrorException(HttpStatus.CONFLICT, "Customer with ID" + "(" + customer.getCustomerId() + ") already exists");
+        else
+            return new ResponseEntity<Customer>(brokerService.createCustomer(customer), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value= "/update/{id}", method = RequestMethod.PUT)
+    @PutMapping(value="/update/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
-    public Customer update(@PathVariable int id, @RequestBody Customer customer){
-        return brokerService.updateCustomer(customer, id);
+    public ResponseEntity<Customer> update(@PathVariable int id, @RequestBody Customer customer){
+        return new ResponseEntity<Customer>(brokerService.updateCustomer(customer, id), HttpStatus.ACCEPTED);
     }
 
-    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/delete/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
-    public void delete(@PathVariable int id){
-        //need to check children records before deleting
+    public ResponseEntity<Object> delete(@PathVariable int id){
         brokerService.deleteCustomer(id);
+        return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(value="/calculateLease", method = RequestMethod.GET)

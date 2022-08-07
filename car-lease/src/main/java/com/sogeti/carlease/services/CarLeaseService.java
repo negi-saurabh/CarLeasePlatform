@@ -53,7 +53,7 @@ public class CarLeaseService {
         double carNettPrice = carForLease.isPresent() ? carForLease.get().getNettPrice() : 0;
         if (carNettPrice == 0) {
             return 1.1f;
-            //Throw new Exception("The combination of model and male is not present");
+            //Throw new Exception("The combination of model and make is not present");
         } else {
             return (((mileage / 12) * duration) / carNettPrice) + (((interestRate / 100) * carNettPrice) / 12);
         }
