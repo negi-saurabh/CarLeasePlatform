@@ -1,8 +1,13 @@
 package com.sogeti.carlease.controllers;
 
+import com.sogeti.carlease.exceptions.CarNotFoundException;
+import com.sogeti.carlease.exceptions.CustomerNotFoundException;
+import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
 import com.sogeti.carlease.services.BrokerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,15 +24,23 @@ public class BrokerController {
 
     @GetMapping(value="/all")
     @PreAuthorize("hasAuthority('BROKER')")
-    public List<Customer> readAll() {
-        return brokerService.getAllCustomers();
+    public ResponseEntity<List<Customer>> readAll() {
+        List<Customer> customers = brokerService.getAllCustomers();
+        if (customers.isEmpty()) {
+            throw new CarNotFoundException("No Customer records were found");
+        }
+        return new ResponseEntity<List<Customer>>(customers, HttpStatus.OK);
     }
 
     @GetMapping(value="/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
-    public List<Customer> read(@PathVariable int id) {
-        Optional<Customer> customer = brokerService.findById(id);
-        return customer.map(List::of).orElse(Collections.emptyList());
+    public ResponseEntity<Customer> read(@PathVariable int id) {
+        Optional<Customer> optCar = carLeaseService.findById(id);
+        if (optCar.isPresent()){
+            return ResponseEntity.ok(optCar.get());
+        } else {
+            throw new CustomerNotFoundException("Customer with customer Id (" + id + ") not found!");
+        }
     }
 
     @PostMapping(value="/addNew")

@@ -2,7 +2,10 @@ package com.sogeti.carlease.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sogeti.carlease.controllers.BrokerController;
+import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.models.Customer;
+import com.sogeti.carlease.services.BrokerService;
+import com.sogeti.carlease.services.CarLeaseService;
 import com.sogeti.carlease.services.LoginService;
 import com.sogeti.carlease.utils.JWTUtility;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,22 +26,27 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 public class BrokerControllerTest {
 
+
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private BrokerController brokerController;
+    @MockBean
+    private BrokerService brokerService;
 
     @MockBean
     private LoginService loginService;
@@ -46,35 +54,48 @@ public class BrokerControllerTest {
     @Autowired
     private JWTUtility jwtUtility;
 
+    @Autowired
+    ObjectMapper mapper;
+
     private String token;
+
+    private Customer mockCustomer;
 
     @BeforeEach
     public void setup() {
         List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("BROKER");
         Mockito.when(loginService.loadUserByUsername(Mockito.anyString())).thenReturn(new User("admin", "password", authorities));
         token = jwtUtility.generateToken("admin", authorities);
+        mockCustomer = getCustomer();
     }
 
     @Test
     @DisplayName("GET /api/customer/all - Found All")
     public void testGetAllCars() throws Exception{
-        Customer mockCustomer =  getCustomer();
         List<Customer> customers = new ArrayList<>();
         customers.add(mockCustomer);
 
+        when(brokerService.getAllCustomers()).thenReturn(customers);
         mockMvc.perform(get("/api/customer/all")
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].customerId", is(mockCustomer.getCustomerId())))
+                .andExpect(jsonPath("$[0].name", is(mockCustomer.getName())))
+                .andExpect(jsonPath("$[0].street", is(mockCustomer.getStreet())))
+                .andExpect(jsonPath("$[0].houseNumber", is(mockCustomer.getHouseNumber())))
+                .andExpect(jsonPath("$[0].zipCode", is(mockCustomer.getZipCode())))
+                .andExpect(jsonPath("$[0].place", is(mockCustomer.getPlace())))
+                .andExpect(jsonPath("$[0].emailAddress", is(mockCustomer.getEmailAddress())))
+                .andExpect(jsonPath("$[0].phoneNumber", is(mockCustomer.getPhoneNumber())))
                 .andExpect(content().contentType(APPLICATION_JSON));
+
     }
 
     @Test
     @DisplayName("GET /api/customer/4 - Found")
     public void testGetCarById() throws Exception {
-        // mock set up
-        Customer mockCustomer =  getCustomer();
-
+        when(brokerService.findById(Mockito.anyInt())).thenReturn(Optional.of(mockCustomer));
         mockMvc.perform(get("/api/customer/" + mockCustomer.getCustomerId())
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON)
@@ -82,12 +103,13 @@ public class BrokerControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    @DisplayName("GET /api/customer/1 - Not Found")
-    public void testGetCarByIdNotFound() throws Exception {
-        Customer mockCustomer =  getCustomer();
 
-        mockMvc.perform(get("/api/customer/" + 44)
+    @Test
+    @DisplayName("GET /api/customer/{id} - Not Found")
+    public void testGetCarByIdNotFound() throws Exception {
+        when(brokerService.findById(20)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/customer/" + 20)
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -97,7 +119,7 @@ public class BrokerControllerTest {
     @Test
     @DisplayName("POST /api/customer/addNew - Success")
     public void testAddCar() throws Exception {
-        Customer mockCustomer =  getCustomer();
+        when(brokerService.createCustomer(Mockito.any(Customer.class))).thenReturn(mockCustomer);
 
         mockMvc.perform(post("/api/customer/" +"addNew").content(asJson(mockCustomer))
                         .header("AUTHORIZATION","Bearer "+token)
@@ -110,48 +132,28 @@ public class BrokerControllerTest {
     @Test
     @DisplayName("PUT /api/customer/update - Success")
     public void testUpdateCar() throws Exception {
-        Customer mockCustomer =  getCustomer();
+        when(brokerService.updateCustomer( mockCustomer,1)).thenReturn(mockCustomer);
 
         mockMvc.perform(put("/api/customer/" +"update"+mockCustomer.getCustomerId()).content(asJson(mockCustomer))
+                        .content(this.mapper.writeValueAsBytes(mockCustomer))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andReturn();
     }
 
     @Test
-    @DisplayName("PUT /api/customer/update - Not Found")
-    public void testUpdateCarNotFound() throws Exception {
-        Customer mockCustomer =  getCustomer();
-
-        mockMvc.perform(put("/api/customer/" +"update"+mockCustomer.getCustomerId()).content(asJson(mockCustomer))
-                        .header("AUTHORIZATION","Bearer "+token)
-                        .contentType(APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     @DisplayName("DELETE /api/customer/delete - Success")
-    public void testDeleteCar() throws Exception {
-        Customer mockCustomer =  getCustomer();
-
-        mockMvc.perform(delete("/api/customer/delete/" +  mockCustomer.getCustomerId())
+    public void testUpdateCarNotFound() throws Exception {
+        BrokerService serviceSpy = Mockito.spy(brokerService);
+        doNothing().when(serviceSpy).deleteCustomer(mockCustomer.getCustomerId());
+        mockMvc.perform(delete("/api/customer/" +"delete"+mockCustomer.getCustomerId()).content(asJson(mockCustomer))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk());
-
+                .andExpect(status().isNoContent());
     }
 
-    @Test
-    @DisplayName("DELETE /api/customer/delete - Not Found")
-    public void testDeleteNotFoundCar() throws Exception {
-        Customer mockCustomer =  getCustomer();
-        mockMvc.perform(delete("/api/customer/delete/" + 1)
-                        .header("AUTHORIZATION","Bearer "+token)
-                        .contentType(APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
 
     private Customer getCustomer(){
         Customer customer = new Customer();
@@ -159,7 +161,7 @@ public class BrokerControllerTest {
         customer.setEmailAddress("xyz@gmail.com");
         customer.setHouseNumber("A-50");
         customer.setName("Sam");
-        customer.setPlace("sdaasasd");
+        customer.setPlace("xyz");
         customer.setPhoneNumber("+9112312312");
         customer.setStreet("hgh");
         customer.setZipCode("asd");

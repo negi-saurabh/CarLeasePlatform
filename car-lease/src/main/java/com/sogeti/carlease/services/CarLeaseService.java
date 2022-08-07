@@ -1,10 +1,13 @@
 package com.sogeti.carlease.services;
 
+import com.sogeti.carlease.exceptions.CarNotFoundException;
 import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.repositories.CarRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,9 +31,16 @@ public class CarLeaseService {
     }
 
     public Car updateCar(Car car, int id) {
-        Car existingCar = carRepository.getReferenceById(id);
-        BeanUtils.copyProperties(car, existingCar, "carId");
-        return carRepository.saveAndFlush(existingCar);
+        if (id != (car.getCarId())) {
+            throw new HttpClientErrorException(HttpStatus.CONFLICT, "Id in URI does not match car id to update");
+        }
+        Optional<Car> op = carRepository.findById(id);
+        if (!op.isPresent()) {
+            throw new CarNotFoundException("Car with id (" + id + ") not found!");
+        }
+        Car originalCar = op.get();
+        BeanUtils.copyProperties(car, originalCar);
+        return carRepository.save(originalCar);
     }
 
     public void deleteCar(int id) {
