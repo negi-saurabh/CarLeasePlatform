@@ -18,6 +18,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
+
+/*
+ * Contains the filter of the APIs
+ */
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
@@ -27,6 +31,11 @@ public class JWTFilter extends OncePerRequestFilter {
     @Autowired
     private LoginService loginService;
 
+
+    /*
+     * Filters the request based on Authorization request parameter which is being passed with each request
+     * it checks if the Bearer of the Authorization has trustable token or not
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Optional<String> ln = Optional.ofNullable(request.getHeader("Authorization"));

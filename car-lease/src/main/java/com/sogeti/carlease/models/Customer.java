@@ -9,6 +9,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+/*
+ * Using Lombok for auto-generation of boiler plate getters, setters, all-arg and no-arg constructors
+ */
 
 @Entity
 @Data

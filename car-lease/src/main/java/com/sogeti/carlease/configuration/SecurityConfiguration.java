@@ -14,7 +14,11 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+
+/*
+ * Contains the security configuration of the APIs
+ */
 
 @Configuration
 @EnableWebSecurity
@@ -36,6 +40,11 @@ public class SecurityConfiguration {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    /*
+     * All the calls with proper credentials to the uri "/Autheticate" are permitted by default
+     * while "/api/customer/**" can only be accessed by a user with role Broker
+     * and "/api/car/**" can only be accessed by a user with role Employee
+     */
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
         return  http.cors().and()

@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/*
+ * Contains methods for login in the APIs
+ */
+
 import java.util.Collection;
 
 @RestController
@@ -30,11 +34,20 @@ public class LoginController {
     @Autowired
     private LoginService loginService;
 
+    /*
+     * A simple test method to check if authentication works
+     * @return String in case of successful login
+     */
     @GetMapping("/")
     public String home(){
         return "Welcome You are home";
     }
 
+    /*
+     * Entry point of the Application before we can get data from any APIs
+     * @RequestBody contains credentials required for login
+     * @return A JWTResponse Token needed for accessing any API
+     */
     @PostMapping("/authenticate")
     public JWTResponse authenticate(@RequestBody JWTRequest jwtRequest) throws Exception {
         try {

@@ -20,11 +20,15 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -134,13 +138,13 @@ public class BrokerControllerTest {
                         .content(this.mapper.writeValueAsBytes(mockCustomer))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
-                        .andExpect(status().isAccepted())
-                        .andExpect(content().contentType(APPLICATION_JSON));
+                .andExpect(status().isAccepted())
+                .andExpect(content().contentType(APPLICATION_JSON));
     }
 
     @Test
     @DisplayName("DELETE /api/customer/delete - Success")
-    public void testUpdateCustomerNotFound() throws Exception {
+    public void testDeleteCustomer() throws Exception {
         BrokerService serviceSpy = Mockito.spy(brokerService);
         doNothing().when(serviceSpy).deleteCustomer(mockCustomer.getCustomerId());
         mockMvc.perform(delete("/api/customer/delete/" + mockCustomer.getCustomerId()).content(asJson(mockCustomer))
@@ -148,6 +152,24 @@ public class BrokerControllerTest {
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    @DisplayName("GET /api/customer/calculateLease - Success")
+    public void testCarLeaseValue() throws Exception {
+        BrokerService serviceSpy = Mockito.spy(brokerService);
+        when(serviceSpy.calculateCarLease(Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyString(), Mockito.anyString())).thenReturn(Mockito.anyDouble());
+        MvcResult result = mockMvc.perform(get("/api/customer/calculateLease")
+                        .header("AUTHORIZATION","Bearer "+token)
+                        .param("Mileage", "45000")
+                        .param("Duration", "60")
+                        .param("InterestRate", "4.5")
+                        .param("Make", "honda")
+                        .param("Model", "city")
+                        .contentType(APPLICATION_JSON))
+                        .andReturn();
+
+        assertEquals(239.76, result.getResponse().getContentAsString());
+        }
 
 
     private Customer getCustomer(){

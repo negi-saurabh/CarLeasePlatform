@@ -3,18 +3,20 @@ package com.sogeti.carlease.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+/*
+ * Utility class to generate/validate JWT tokens
+ */
 @Component
 public class JWTUtility implements Serializable {
 
@@ -23,7 +25,6 @@ public class JWTUtility implements Serializable {
     private final String SIGNING_KEY = "ASecretKeyToSigYourJWTToken";
     private final Long EXPIRE_IN = 600000L;
     private final String AUTH_HEADER_USERNAME = "admin";
-    private final String AUTH_HEADER_PASSWORD = "password";
     private final String AUTH_HEADER_ROLES = "EMPLOYEE";
 
 
@@ -66,7 +67,6 @@ public class JWTUtility implements Serializable {
     public String generateToken(String username, Collection<GrantedAuthority> authorities) {
         //Map<String, Object> claims = new HashMap<>();
         //return generateToken(claims, userDetails.getUsername());
-
         Claims claims = Jwts.claims();
         String roles = authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
         claims.put(AUTH_HEADER_USERNAME, username);

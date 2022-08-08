@@ -14,6 +14,11 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.util.List;
 import java.util.Optional;
 
+/*
+ * Contains all the methods accessible to a BROKER to maintain Customer's data
+ * A Broker can do all the CRUD operations for a Customer
+ */
+
 @RestController
 @RequestMapping("/api/customer")
 public class BrokerController {
@@ -21,6 +26,10 @@ public class BrokerController {
     @Autowired
     private BrokerService brokerService;
 
+
+    /*
+     * Returns data of all the Customers
+     */
     @GetMapping(value="/all")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<List<Customer>> readAll() {
@@ -31,6 +40,11 @@ public class BrokerController {
         return new ResponseEntity<List<Customer>>(customers, HttpStatus.OK);
     }
 
+    /*
+     * Returns data of the Customer with given id
+     * @PathVariable contains the id of the Customer
+     * @return the Customer Entity with given customer id
+     */
     @GetMapping(value="/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<Customer> read(@PathVariable int id) {
@@ -42,22 +56,37 @@ public class BrokerController {
         }
     }
 
+
+    /*
+     * Creates a new Customer
+     * @RequestBody contains the all the attributes of the Customer
+     * @return the newly created Customer Entity
+     */
     @PostMapping(value="/addNew")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<Customer> create(@RequestBody final Customer customer) {
         Optional<Customer> objCustomer = brokerService.findById(customer.getCustomerId());
-       if(objCustomer.isPresent())
+        if(objCustomer.isPresent())
             throw new HttpClientErrorException(HttpStatus.CONFLICT, "Customer with ID" + "(" + customer.getCustomerId() + ") already exists");
         else
             return new ResponseEntity<Customer>(brokerService.createCustomer(customer), HttpStatus.CREATED);
     }
 
+    /*
+     * Update the data of an existing Customer
+     * @PathVariable contains the id of the Customer
+     * @RequestBody contains the all new the attributes values of the Customer
+     * @return the updated Customer data
+     */
     @PutMapping(value="/update/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<Customer> update(@PathVariable int id, @RequestBody Customer customer){
         return new ResponseEntity<Customer>(brokerService.updateCustomer(customer, id), HttpStatus.ACCEPTED);
     }
 
+    /*
+     * Deletes the data of an existing Customer with the given customer id
+     */
     @DeleteMapping(value = "/delete/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<Object> delete(@PathVariable int id){
@@ -65,9 +94,15 @@ public class BrokerController {
         return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
     }
 
+    /*
+     * Calculates the value of car lease for a Broker
+     * Communicates with CarLeaseService in order to calculate the lease value
+     * @RequestParam contains Mileage, Duration , InterestRate , Make and Model which are necessary
+     * for lease value to be calculated.
+     */
     @RequestMapping(value="/calculateLease", method = RequestMethod.GET)
     @PreAuthorize("hasAuthority('BROKER')")
-    public double calculateLease(@RequestParam(value = "Mileage" , required = true) double mileage,
+    public Double calculateLease(@RequestParam(value = "Mileage" , required = true) double mileage,
                                  @RequestParam(value = "Duration", required = true) double duration,
                                  @RequestParam(value = "InterestRate", required = true) double interestRate,
                                  @RequestParam(value = "Make", required = true) String make,

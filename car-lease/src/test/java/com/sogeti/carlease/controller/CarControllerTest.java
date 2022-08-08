@@ -1,7 +1,6 @@
 package com.sogeti.carlease.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sogeti.carlease.controllers.CarController;
 import com.sogeti.carlease.models.Car;
 import com.sogeti.carlease.services.CarLeaseService;
 import com.sogeti.carlease.services.LoginService;
@@ -18,7 +17,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,7 +45,7 @@ public class CarControllerTest {
     private MockMvc mockMvc;
 
     /*
-     * We use @MockBean because the WebApplicationContext does not provide
+     * Using @MockBean because the WebApplicationContext does not provide
      * any @Component, @Service or @Repository beans instance/bean of this service
      * in its context. It only loads the beans solely required for testing the
      * controller.
@@ -55,6 +53,9 @@ public class CarControllerTest {
     @MockBean
     private CarLeaseService carLeaseService;
 
+    /*
+     * login service to create JWTTokens
+     */
     @MockBean
     private LoginService loginService;
 
@@ -62,7 +63,7 @@ public class CarControllerTest {
     private JWTUtility jwtUtility;
 
     /*
-     * Jackson mapper for Object -> JSON conversion
+     * Jackson mapper for Object to JSON conversion
      */
     @Autowired
     ObjectMapper mapper;
@@ -89,16 +90,16 @@ public class CarControllerTest {
         mockMvc.perform(get("/api/car/all")
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$[0].carId", is(mockCar.getCarId())))
-                        .andExpect(jsonPath("$[0].make", is(mockCar.getMake())))
-                        .andExpect(jsonPath("$[0].model", is(mockCar.getModel())))
-                        .andExpect(jsonPath("$[0].version", is(mockCar.getVersion())))
-                        .andExpect(jsonPath("$[0].numberOfDoors", is(mockCar.getNumberOfDoors())))
-                        .andExpect(jsonPath("$[0].co2Emissions", is(mockCar.getCo2Emissions())))
-                        .andExpect(jsonPath("$[0].grossPrice", is(mockCar.getGrossPrice())))
-                        .andExpect(jsonPath("$[0].nettPrice", is(mockCar.getNettPrice())))
-                        .andExpect(content().contentType(APPLICATION_JSON));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].carId", is(mockCar.getCarId())))
+                .andExpect(jsonPath("$[0].make", is(mockCar.getMake())))
+                .andExpect(jsonPath("$[0].model", is(mockCar.getModel())))
+                .andExpect(jsonPath("$[0].version", is(mockCar.getVersion())))
+                .andExpect(jsonPath("$[0].numberOfDoors", is(mockCar.getNumberOfDoors())))
+                .andExpect(jsonPath("$[0].co2Emissions", is(mockCar.getCo2Emissions())))
+                .andExpect(jsonPath("$[0].grossPrice", is(mockCar.getGrossPrice())))
+                .andExpect(jsonPath("$[0].nettPrice", is(mockCar.getNettPrice())))
+                .andExpect(content().contentType(APPLICATION_JSON));
 
     }
 
@@ -110,7 +111,7 @@ public class CarControllerTest {
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                        .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -121,7 +122,7 @@ public class CarControllerTest {
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                        .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -132,9 +133,9 @@ public class CarControllerTest {
         mockMvc.perform(post("/api/car/addNew").content(asJson(mockCar))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
-                        .andExpect(status().isCreated())
-                        .andExpect(content().contentType(APPLICATION_JSON))
-                        .andReturn();
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andReturn();
     }
 
     @Test
@@ -145,8 +146,8 @@ public class CarControllerTest {
                         .content(this.mapper.writeValueAsBytes(mockCar))
                         .header("AUTHORIZATION","Bearer "+token)
                         .contentType(APPLICATION_JSON))
-                        .andExpect(status().isAccepted())
-                        .andExpect(content().contentType(APPLICATION_JSON));
+                .andExpect(status().isAccepted())
+                .andExpect(content().contentType(APPLICATION_JSON));
     }
 
     @Test
@@ -155,8 +156,8 @@ public class CarControllerTest {
         CarLeaseService serviceSpy = Mockito.spy(carLeaseService);
         doNothing().when(serviceSpy).deleteCar(mockCar.getCarId());
         mockMvc.perform(delete("/api/car/delete/" +  mockCar.getCarId())
-                .header("AUTHORIZATION","Bearer "+token)
-                .contentType(APPLICATION_JSON))
+                        .header("AUTHORIZATION","Bearer "+token)
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 
