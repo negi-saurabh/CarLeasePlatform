@@ -5,13 +5,13 @@ import org.springframework.web.client.HttpStatusCodeException;
 
 public class CustomerNotFoundException extends HttpStatusCodeException {
 
-    private static final long serialVersionUID = 73263616501570402L;
+  private static final long serialVersionUID = 73263616501570402L;
 
-    public CustomerNotFoundException() {
-        super(HttpStatus.NOT_FOUND);
-    }
+  public CustomerNotFoundException() {
+    super(HttpStatus.NOT_FOUND);
+  }
 
-    public CustomerNotFoundException(String message) {
-        super(HttpStatus.NOT_FOUND, message);
-    }
+  public CustomerNotFoundException(String message) {
+    super(HttpStatus.NOT_FOUND, message);
+  }
 }

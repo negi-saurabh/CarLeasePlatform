@@ -4,6 +4,7 @@ import com.sogeti.carlease.models.JWTRequest;
 import com.sogeti.carlease.models.JWTResponse;
 import com.sogeti.carlease.services.LoginService;
 import com.sogeti.carlease.utils.JWTUtility;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,49 +17,48 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
-
 @RestController
 public class LoginController {
 
-    @Autowired
-    private JWTUtility jwtUtility;
+  @Autowired
+  private JWTUtility jwtUtility;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+  @Autowired
+  private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private LoginService loginService;
+  @Autowired
+  private LoginService loginService;
 
-    /*
-     * A simple test method to check if authentication works
-     * @return String in case of successful login
-     */
-    @GetMapping("/")
-    public String home() {
-        return "Welcome You are home";
+  /*
+   * A simple test method to check if authentication works
+   * @return String in case of successful login
+   */
+  @GetMapping("/")
+  public String home() {
+    return "Welcome You are home";
+  }
+
+  /*
+   * Entry point of the Application before we can get data from any APIs
+   * @RequestBody contains credentials required for login
+   * @return A JWTResponse Token needed for accessing any API
+   */
+  @PostMapping("/authenticate")
+  public JWTResponse authenticate(@RequestBody JWTRequest jwtRequest) throws Exception {
+    try {
+      Authentication authentication = authenticationManager.authenticate(
+          new UsernamePasswordAuthenticationToken(
+              jwtRequest.getUserName(),
+              jwtRequest.getPassword())
+      );
+
+      final UserDetails userDetails = loginService.loadUserByUsername(jwtRequest.getUserName());
+      final String token = jwtUtility.generateToken(userDetails.getUsername(),
+          (Collection<GrantedAuthority>) authentication.getAuthorities());
+      return new JWTResponse(token);
+    } catch (BadCredentialsException exception) {
+      throw new Exception("INVALID CREDENTIALS", exception);
     }
 
-    /*
-     * Entry point of the Application before we can get data from any APIs
-     * @RequestBody contains credentials required for login
-     * @return A JWTResponse Token needed for accessing any API
-     */
-    @PostMapping("/authenticate")
-    public JWTResponse authenticate(@RequestBody JWTRequest jwtRequest) throws Exception {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            jwtRequest.getUserName(),
-                            jwtRequest.getPassword())
-            );
-
-            final UserDetails userDetails = loginService.loadUserByUsername(jwtRequest.getUserName());
-            final String token = jwtUtility.generateToken(userDetails.getUsername(), (Collection<GrantedAuthority>) authentication.getAuthorities());
-            return new JWTResponse(token);
-        } catch (BadCredentialsException exception) {
-            throw new Exception("INVALID CREDENTIALS", exception);
-        }
-
-    }
+  }
 }

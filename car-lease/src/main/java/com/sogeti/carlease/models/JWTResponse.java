@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JWTResponse {
 
-    private String jwtToken;
+  private String jwtToken;
 }
