@@ -9,9 +9,9 @@ import org.springframework.data.jpa.repository.Query;
  * like 'findById' or 'findAll'
  */
 
-public interface CarRepository  extends JpaRepository<Car, Integer> {
+public interface CarRepository extends JpaRepository<Car, Integer> {
 
-    public Car findByModelAndMake(String model, String make);
+    Car findByModelAndMake(String model, String make);
 
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END FROM Car c WHERE c.carId = ?1")
     Boolean

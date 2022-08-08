@@ -31,7 +31,7 @@ public class SecurityConfiguration {
     private JWTFilter jwtFilter;
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
 
@@ -47,7 +47,7 @@ public class SecurityConfiguration {
      */
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
-        return  http.cors().and()
+        return http.cors().and()
                 .csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/authenticate").permitAll()

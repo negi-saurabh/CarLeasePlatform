@@ -30,7 +30,7 @@ public class JWTUtility implements Serializable {
 
     public String getToken(HttpServletRequest request) {
         String authToken = request.getHeader(AUTH_HEADER_PARAM_NAME);
-        if(Objects.isNull(authToken)) {
+        if (Objects.isNull(authToken)) {
             return null;
         }
         return authToken.substring(AUTH_HEADER_TOKEN_PREFIX.length());
@@ -42,8 +42,7 @@ public class JWTUtility implements Serializable {
         try {
             final Claims claims = Jwts.parser().setSigningKey(SIGNING_KEY.getBytes()).parseClaimsJws(token).getBody();
             username = String.valueOf(claims.get(AUTH_HEADER_USERNAME));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new Exception("INVALID JWT TOKEN");
         }
         return username;
@@ -55,8 +54,7 @@ public class JWTUtility implements Serializable {
         try {
             final Claims claims = Jwts.parser().setSigningKey(SIGNING_KEY.getBytes()).parseClaimsJws(token).getBody();
             isValid = !(claims.getExpiration().before(new Date()));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new Exception("INVALID JWT TOKEN");
         }
 
@@ -71,7 +69,7 @@ public class JWTUtility implements Serializable {
         String roles = authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
         claims.put(AUTH_HEADER_USERNAME, username);
         claims.put(AUTH_HEADER_ROLES, roles);
-        Date expiration = Date.from(Instant.ofEpochMilli(new Date().getTime()+EXPIRE_IN));
+        Date expiration = Date.from(Instant.ofEpochMilli(new Date().getTime() + EXPIRE_IN));
         return Jwts.builder().setClaims(claims).setIssuedAt(new Date()).setExpiration(expiration).signWith(SignatureAlgorithm.HS512, SIGNING_KEY.getBytes()).compact();
     }
 

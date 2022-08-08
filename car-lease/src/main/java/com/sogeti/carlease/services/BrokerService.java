@@ -22,7 +22,7 @@ public class BrokerService {
     @Autowired
     public CarLeaseService carLeaseService;
 
-    public List<Customer> getAllCustomers(){
+    public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
     }
 
@@ -30,17 +30,17 @@ public class BrokerService {
         return customerRepository.findById(id);
     }
 
-    public Customer createCustomer(Customer customer){
+    public Customer createCustomer(Customer customer) {
         return customerRepository.saveAndFlush(customer);
     }
 
-    public Customer updateCustomer(Customer customer, int id){
+    public Customer updateCustomer(Customer customer, int id) {
         Customer existingCustomer = customerRepository.getReferenceById(id);
         BeanUtils.copyProperties(customer, existingCustomer, "customerId");
         return customerRepository.saveAndFlush(existingCustomer);
     }
 
-    public void deleteCustomer(int id){
+    public void deleteCustomer(int id) {
         customerRepository.deleteById(id);
     }
 

@@ -29,7 +29,7 @@ public class CarController {
     /*
      * Returns data of all the Cars
      */
-    @GetMapping(value="/all")
+    @GetMapping(value = "/all")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<List<Car>> readAll() {
         List<Car> cars = carLeaseService.getAllCars();
@@ -44,11 +44,11 @@ public class CarController {
      * @PathVariable contains the id of the Car
      * @return the Car Entity with given car id
      */
-    @GetMapping(value="/{id}")
+    @GetMapping(value = "/{id}")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<Car> read(@PathVariable int id) {
         Optional<Car> optCar = carLeaseService.findById(id);
-        if (optCar.isPresent()){
+        if (optCar.isPresent()) {
             return ResponseEntity.ok(optCar.get());
         } else {
             throw new CarNotFoundException("Car with car Id (" + id + ") not found!");
@@ -60,13 +60,13 @@ public class CarController {
      * @RequestBody contains the all the attributes of the Car
      * @return the newly created Car Entity
      */
-    @PostMapping(value="/addNew")
+    @PostMapping(value = "/addNew")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<Car> create(@RequestBody final Car car) throws ValidationException {
         Optional<Car> objCar = carLeaseService.findById(car.getCarId());
-        if(car.getMake() == null || car.getModel() == null && car.getNettPrice() == 0.0)
+        if (car.getMake() == null || car.getModel() == null && car.getNettPrice() == 0.0)
             throw new ValidationException("A car cannot be created without Model or Make or NettPrice");
-        else if(objCar.isPresent())
+        else if (objCar.isPresent())
             throw new HttpClientErrorException(HttpStatus.CONFLICT, "Car with ID" + "(" + car.getCarId() + ") already exists");
         else
             return new ResponseEntity<Car>(carLeaseService.createCar(car), HttpStatus.CREATED);
@@ -78,10 +78,10 @@ public class CarController {
      * @RequestBody contains the all new the attributes values of the Car
      * @return the updated Car data
      */
-    @PutMapping(value="/update/{id}")
+    @PutMapping(value = "/update/{id}")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<Car> update(@PathVariable int id, @RequestBody Car car) throws ValidationException {
-            return new ResponseEntity<Car>(carLeaseService.updateCar(car, id), HttpStatus.ACCEPTED);
+        return new ResponseEntity<Car>(carLeaseService.updateCar(car, id), HttpStatus.ACCEPTED);
     }
 
     /*
@@ -90,7 +90,7 @@ public class CarController {
     @DeleteMapping(value = "/delete/{id}")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<Object> delete(@PathVariable int id) throws ValidationException {
-            carLeaseService.deleteCar(id);
-            return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
+        carLeaseService.deleteCar(id);
+        return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
     }
 }

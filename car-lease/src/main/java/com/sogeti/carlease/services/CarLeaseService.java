@@ -58,8 +58,7 @@ public class CarLeaseService {
         Optional<Car> carForLease = Optional.ofNullable(result);
         double carNettPrice = carForLease.isPresent() ? carForLease.get().getNettPrice() : 0;
         // for test case
-        if("city".equals(model) && "honda".equals(make))
-        {
+        if ("city".equals(model) && "honda".equals(make)) {
             carNettPrice = 63000.0;
         }
         if (carNettPrice == 0) {

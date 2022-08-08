@@ -38,12 +38,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CarControllerTest {
 
     /*
+     * Jackson mapper for Object to JSON conversion
+     */
+    @Autowired
+    ObjectMapper mapper;
+    /*
      * We can @Autowire MockMvc because the WebApplicationContext provides an
      * instance/bean for us
      */
     @Autowired
     private MockMvc mockMvc;
-
     /*
      * Using @MockBean because the WebApplicationContext does not provide
      * any @Component, @Service or @Repository beans instance/bean of this service
@@ -52,43 +56,42 @@ public class CarControllerTest {
      */
     @MockBean
     private CarLeaseService carLeaseService;
-
     /*
      * login service to create JWTTokens
      */
     @MockBean
     private LoginService loginService;
-
     @Autowired
     private JWTUtility jwtUtility;
-
-    /*
-     * Jackson mapper for Object to JSON conversion
-     */
-    @Autowired
-    ObjectMapper mapper;
-
     private String token;
 
     private Car mockCar;
+
+    private static String asJson(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @BeforeEach
     public void setup() {
         List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("EMPLOYEE");
         when(loginService.loadUserByUsername(Mockito.anyString())).thenReturn(new User("admin", "password", authorities));
         token = jwtUtility.generateToken("admin", authorities);
-        mockCar =  getCar();
+        mockCar = getCar();
     }
 
     @Test
     @DisplayName("GET /api/car/all - Found All")
-    public void testGetAllCars() throws Exception{
+    public void testGetAllCars() throws Exception {
         List<Car> cars = new ArrayList<>();
         cars.add(mockCar);
 
         when(carLeaseService.getAllCars()).thenReturn(cars);
         mockMvc.perform(get("/api/car/all")
-                        .header("AUTHORIZATION","Bearer "+token)
+                        .header("AUTHORIZATION", "Bearer " + token)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].carId", is(mockCar.getCarId())))
@@ -108,7 +111,7 @@ public class CarControllerTest {
     public void testGetCarById() throws Exception {
         when(carLeaseService.findById(Mockito.anyInt())).thenReturn(Optional.of(mockCar));
         mockMvc.perform(get("/api/car/" + mockCar.getCarId())
-                        .header("AUTHORIZATION","Bearer "+token)
+                        .header("AUTHORIZATION", "Bearer " + token)
                         .contentType(APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -119,7 +122,7 @@ public class CarControllerTest {
     public void testGetCarByIdNotFound() throws Exception {
         when(carLeaseService.findById(20)).thenReturn(Optional.empty());
         mockMvc.perform(get("/api/car/" + 20)
-                        .header("AUTHORIZATION","Bearer "+token)
+                        .header("AUTHORIZATION", "Bearer " + token)
                         .contentType(APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -131,7 +134,7 @@ public class CarControllerTest {
         when(carLeaseService.createCar(Mockito.any(Car.class))).thenReturn(mockCar);
 
         mockMvc.perform(post("/api/car/addNew").content(asJson(mockCar))
-                        .header("AUTHORIZATION","Bearer "+token)
+                        .header("AUTHORIZATION", "Bearer " + token)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(APPLICATION_JSON))
@@ -141,10 +144,10 @@ public class CarControllerTest {
     @Test
     @DisplayName("PUT /api/car/update - Success")
     public void testUpdateCar() throws Exception {
-        when(carLeaseService.updateCar( mockCar,1)).thenReturn(mockCar);
+        when(carLeaseService.updateCar(mockCar, 1)).thenReturn(mockCar);
         mockMvc.perform(put("/api/car/update/" + mockCar.getCarId())
                         .content(this.mapper.writeValueAsBytes(mockCar))
-                        .header("AUTHORIZATION","Bearer "+token)
+                        .header("AUTHORIZATION", "Bearer " + token)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isAccepted())
                 .andExpect(content().contentType(APPLICATION_JSON));
@@ -155,12 +158,11 @@ public class CarControllerTest {
     public void testDeleteCar() throws Exception {
         CarLeaseService serviceSpy = Mockito.spy(carLeaseService);
         doNothing().when(serviceSpy).deleteCar(mockCar.getCarId());
-        mockMvc.perform(delete("/api/car/delete/" +  mockCar.getCarId())
-                        .header("AUTHORIZATION","Bearer "+token)
+        mockMvc.perform(delete("/api/car/delete/" + mockCar.getCarId())
+                        .header("AUTHORIZATION", "Bearer " + token)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
-
 
     private Car getCar() {
         Car car = new Car();
@@ -172,13 +174,5 @@ public class CarControllerTest {
         car.setModel("X40");
         car.setVersion("1.0");
         return car;
-    }
-
-    private static String asJson(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }

@@ -20,6 +20,8 @@ public class LoginService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // Logic to get the user from Database
-        return new User("admin", "password", new ArrayList<>() {{add(new SimpleGrantedAuthority("BROKER"));}} );
+        return new User("admin", "password", new ArrayList<>() {{
+            add(new SimpleGrantedAuthority("BROKER"));
+        }});
     }
 }

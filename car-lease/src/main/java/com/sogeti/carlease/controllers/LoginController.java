@@ -16,10 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/*
- * Contains methods for login in the APIs
- */
-
 import java.util.Collection;
 
 @RestController
@@ -39,7 +35,7 @@ public class LoginController {
      * @return String in case of successful login
      */
     @GetMapping("/")
-    public String home(){
+    public String home() {
         return "Welcome You are home";
     }
 
@@ -60,8 +56,7 @@ public class LoginController {
             final UserDetails userDetails = loginService.loadUserByUsername(jwtRequest.getUserName());
             final String token = jwtUtility.generateToken(userDetails.getUsername(), (Collection<GrantedAuthority>) authentication.getAuthorities());
             return new JWTResponse(token);
-        }
-        catch (BadCredentialsException exception){
+        } catch (BadCredentialsException exception) {
             throw new Exception("INVALID CREDENTIALS", exception);
         }
 

@@ -39,12 +39,11 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Optional<String> ln = Optional.ofNullable(request.getHeader("Authorization"));
-        String authorization = ln.isPresent()? ln.get() : "NoAuth";
+        String authorization = ln.isPresent() ? ln.get() : "NoAuth";
         String token = null;
         String userName = null;
 
-        if(!"NoAuth".equals(authorization) && authorization.startsWith("Bearer"))
-        {
+        if (!"NoAuth".equals(authorization) && authorization.startsWith("Bearer")) {
             try {
                 token = authorization.substring(7);
                 userName = jwtUtility.getUsernameFromToken(token);
@@ -54,14 +53,13 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         }
 
-        if(null != userName && SecurityContextHolder.getContext().getAuthentication() == null)
-        {
+        if (null != userName && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = loginService.loadUserByUsername(userName);
             try {
-                if(jwtUtility.isValidToken(token)){
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken=
+                if (jwtUtility.isValidToken(token)) {
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails,
-                                    null , userDetails.getAuthorities());
+                                    null, userDetails.getAuthorities());
 
                     usernamePasswordAuthenticationToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)

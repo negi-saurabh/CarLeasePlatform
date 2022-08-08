@@ -30,7 +30,7 @@ public class BrokerController {
     /*
      * Returns data of all the Customers
      */
-    @GetMapping(value="/all")
+    @GetMapping(value = "/all")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<List<Customer>> readAll() {
         List<Customer> customers = brokerService.getAllCustomers();
@@ -45,11 +45,11 @@ public class BrokerController {
      * @PathVariable contains the id of the Customer
      * @return the Customer Entity with given customer id
      */
-    @GetMapping(value="/{id}")
+    @GetMapping(value = "/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<Customer> read(@PathVariable int id) {
         Optional<Customer> optCustomer = brokerService.findById(id);
-        if (optCustomer.isPresent()){
+        if (optCustomer.isPresent()) {
             return ResponseEntity.ok(optCustomer.get());
         } else {
             throw new CustomerNotFoundException("Customer with customer Id (" + id + ") not found!");
@@ -62,11 +62,11 @@ public class BrokerController {
      * @RequestBody contains the all the attributes of the Customer
      * @return the newly created Customer Entity
      */
-    @PostMapping(value="/addNew")
+    @PostMapping(value = "/addNew")
     @PreAuthorize("hasAuthority('BROKER')")
     public ResponseEntity<Customer> create(@RequestBody final Customer customer) {
         Optional<Customer> objCustomer = brokerService.findById(customer.getCustomerId());
-        if(objCustomer.isPresent())
+        if (objCustomer.isPresent())
             throw new HttpClientErrorException(HttpStatus.CONFLICT, "Customer with ID" + "(" + customer.getCustomerId() + ") already exists");
         else
             return new ResponseEntity<Customer>(brokerService.createCustomer(customer), HttpStatus.CREATED);
@@ -78,9 +78,9 @@ public class BrokerController {
      * @RequestBody contains the all new the attributes values of the Customer
      * @return the updated Customer data
      */
-    @PutMapping(value="/update/{id}")
+    @PutMapping(value = "/update/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
-    public ResponseEntity<Customer> update(@PathVariable int id, @RequestBody Customer customer){
+    public ResponseEntity<Customer> update(@PathVariable int id, @RequestBody Customer customer) {
         return new ResponseEntity<Customer>(brokerService.updateCustomer(customer, id), HttpStatus.ACCEPTED);
     }
 
@@ -89,7 +89,7 @@ public class BrokerController {
      */
     @DeleteMapping(value = "/delete/{id}")
     @PreAuthorize("hasAuthority('BROKER')")
-    public ResponseEntity<Object> delete(@PathVariable int id){
+    public ResponseEntity<Object> delete(@PathVariable int id) {
         brokerService.deleteCustomer(id);
         return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
     }
@@ -100,13 +100,13 @@ public class BrokerController {
      * @RequestParam contains Mileage, Duration , InterestRate , Make and Model which are necessary
      * for lease value to be calculated.
      */
-    @RequestMapping(value="/calculateLease", method = RequestMethod.GET)
+    @RequestMapping(value = "/calculateLease", method = RequestMethod.GET)
     @PreAuthorize("hasAuthority('BROKER')")
-    public Double calculateLease(@RequestParam(value = "Mileage" , required = true) double mileage,
+    public Double calculateLease(@RequestParam(value = "Mileage", required = true) double mileage,
                                  @RequestParam(value = "Duration", required = true) double duration,
                                  @RequestParam(value = "InterestRate", required = true) double interestRate,
                                  @RequestParam(value = "Make", required = true) String make,
-                                 @RequestParam(value = "Model", required = true) String model){
-        return brokerService.calculateCarLease(mileage,duration,interestRate,make,model);
+                                 @RequestParam(value = "Model", required = true) String model) {
+        return brokerService.calculateCarLease(mileage, duration, interestRate, make, model);
     }
 }
